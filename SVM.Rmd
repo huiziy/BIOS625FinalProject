@@ -1,0 +1,46 @@
+---
+title: "625_project"
+output: html_document
+---
+```{r}
+load("/Users/nuonachen/Downloads/Imputed_5.RData")
+imputed1 = imputed1[, -1]
+temp_data = imputed1[1:22787,]
+```
+
+
+```{r}
+library(caTools)
+split = sample.split(temp_data$anemia, SplitRatio = 0.7)
+
+training_set = subset(temp_data, split == TRUE)
+test_set = subset(temp_data, split == FALSE)
+
+training_set["age"] = scale(training_set["age"])
+training_set["poverty_rate"] = scale(training_set["poverty_rate"])
+training_set["literacy_rate"] = scale(training_set["literacy_rate"])
+test_set["age"] = scale(test_set["age"])
+test_set["poverty_rate"] = scale(test_set["poverty_rate"])
+test_set["literacy_rate"] = scale(test_set["literacy_rate"])
+```
+
+
+
+```{r}
+library(e1071)
+start.time = proc.time()
+classifier= svm(formula = anemia ~ .,
+                 data = training_set,
+                 type = 'C-classification',
+                 kernel = 'linear')
+stop.time = proc.time()
+print(stop.time - start.time)
+```
+
+
+```{r}
+y_pred = predict(classifier, newdata = temp_data[c("age", "edu", "marriage", "job", "wealth", "head", "media", "toilet", "water", "term_preg", "housesize", "facility_dist", "contraceptive", "pregn_now", "breastfeeding", "residence", "poverty_rate", "literacy_rate")])
+table(predicted = y_pred, true = temp_data$anemia)
+```
+
+
